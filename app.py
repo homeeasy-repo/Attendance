@@ -20,7 +20,7 @@ def connect_db():
 def get_employees():
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT fullname, phone, email FROM employee WHERE id IN (379, 403, 375, 398, 395, 399, 356, 390, 378, 5, 402, 401, 405, 407, 391, 173)")
+    cursor.execute("SELECT fullname, phone, email FROM employee WHERE id IN (379, 403, 398, 395, 399, 356, 390, 378, 5, 402, 401, 405, 391, 173)")
     employees = cursor.fetchall()
     conn.close()
     return employees
