@@ -20,7 +20,11 @@ def connect_db():
 def get_employees():
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT fullname, phone, email FROM employee WHERE id IN (373, 379, 403, 398, 395, 399, 356, 406, 390, 378, 5, 402, 401, 405, 391, 173)")
+    cursor.execute("""
+        SELECT fullname, phone, email 
+        FROM employee 
+        WHERE id IN (373, 379, 403, 398, 395, 399, 356, 406, 390, 378, 5, 402, 401, 405, 391)
+    """)
     employees = cursor.fetchall()
     conn.close()
     return employees
@@ -44,13 +48,22 @@ current_time = datetime.now()
 time_limit_11am = datetime.combine(datetime.today(), datetime.strptime("11:00", "%H:%M").time()) + timedelta(hours=1)
 time_limit_4pm = datetime.combine(datetime.today(), datetime.strptime("16:00", "%H:%M").time()) + timedelta(hours=1)
 
-attendance_data = []
-attendance_df = pd.DataFrame(columns=["Name", "Email", "Phone", "Status", "Date and Time", "Meeting Time"])
-
 if meeting_time == "11 AM" and current_time > time_limit_11am:
     st.warning("Time limit exceeded. You can only select a time until 12:00 PM for 11 AM meeting.")
 elif meeting_time == "4 PM" and current_time > time_limit_4pm:
     st.warning("Time limit exceeded. You can only select a time until 5:00 PM for 4 PM meeting.")
+
+if meeting_time == "11 AM":
+    start_time = datetime.combine(datetime.today(), datetime.strptime("11:00", "%H:%M").time())
+    end_time = datetime.combine(datetime.today(), datetime.strptime("12:00", "%H:%M").time())
+    available_times = pd.date_range(start=start_time, end=end_time, freq='5T').time
+else:
+    start_time = datetime.combine(datetime.today(), datetime.strptime("16:00", "%H:%M").time())
+    end_time = datetime.combine(datetime.today(), datetime.strptime("17:00", "%H:%M").time())
+    available_times = pd.date_range(start=start_time, end=end_time, freq='5T').time
+
+attendance_data = []
+attendance_df = pd.DataFrame(columns=["Name", "Email", "Phone", "Status", "Date and Time", "Meeting Time"])
 
 for emp in employees:
     fullname, phone, email = emp
@@ -62,8 +75,12 @@ for emp in employees:
         key=f"status_{fullname}"
     )
     
-    time = st.time_input(f"Select time for {fullname}", datetime.now().time(), key=f"time_{fullname}")
-    
+    time = st.selectbox(
+        f"Select time for {fullname}",
+        available_times,
+        key=f"time_{fullname}"
+    )
+
     attendance_data.append({
         "fullname": fullname,
         "phone": phone,
